@@ -1,13 +1,10 @@
 module DNA (toRNA) where
 
 toRNA :: String -> Maybe String
-toRNA dna = sequenceA $ toRNA' dna
-    where
-        toRNA' [] = []
-        toRNA' (c:cs) = convert c : toRNA' cs
+toRNA = mapM convert
 
 convert :: Char -> Maybe Char
-convert c = case c of
+convert nucleotide = case nucleotide of
     'G' -> Just 'C'
     'C' -> Just 'G'
     'T' -> Just 'A'

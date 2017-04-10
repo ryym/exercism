@@ -1,15 +1,15 @@
-
 pub fn raindrops(n: i32) -> String {
-    let mut s = String::new();
+    let cases = [
+        (3, "Pling"),
+        (5, "Plang"),
+        (7, "Plong"),
+    ];
 
-    if n % 3 == 0 {
-        s.push_str("Pling");
-    }
-    if n % 5 == 0 {
-        s.push_str("Plang");
-    }
-    if n % 7 == 0 {
-        s.push_str("Plong");
+    let mut s = String::new();
+    for &(fact, sound) in cases.iter() {
+        if n % fact == 0 {
+            s += sound
+        }
     }
 
     if s.is_empty() {

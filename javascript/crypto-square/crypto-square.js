@@ -5,31 +5,28 @@ module.exports = class Crypto {
   }
 
   normalizePlaintext() {
-    return this.rawText.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()
+    return this.rawText.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
   }
 
   size() {
-    const len = this.text.length
-    return Math.ceil(Math.sqrt(len))
+    return Math.ceil(Math.sqrt(this.text.length))
   }
 
   plaintextSegments() {
-    let text = this.text
-    const size = this.size()
     const segs = []
-    while (text.length > 0) {
-      segs.push(text.slice(0, size))
-      text = text.slice(size)
+    const size = this.size()
+    for (let i = 0; i < this.text.length; i += size) {
+      segs.push(this.text.slice(i, i + size))
     }
     return segs
   }
 
   ciphertext() {
     const segs = this.plaintextSegments()
-    let text = ""
+    let encoded = ''
     for (let i = 0; i < segs[0].length; i++) {
-      segs.forEach(seg => text += seg[i] || "")
+      segs.forEach(seg => encoded += seg[i] || '')
     }
-    return text
+    return encoded
   }
 }

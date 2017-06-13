@@ -1,6 +1,6 @@
 module.exports = class Trinary {
   constructor(value) {
-    this.value = isNaN(value) ? '' : value
+    this.value = this.isValidTrinary(value) ? value : ''
   }
 
   toDecimal() {
@@ -8,5 +8,9 @@ module.exports = class Trinary {
       (d, ch, i) => d + Number(ch) * Math.pow(3, i),
       0
     )
+  }
+
+  isValidTrinary(value) {
+    return /^[012]+$/.test(value)
   }
 }

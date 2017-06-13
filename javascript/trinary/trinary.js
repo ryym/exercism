@@ -4,10 +4,8 @@ module.exports = class Trinary {
   }
 
   toDecimal() {
-    return this.value.split('').reverse().reduce(
-      (d, ch, i) => d + Number(ch) * Math.pow(3, i),
-      0
-    )
+    //ref: http://exercism.io/submissions/ed42e0100312446f897c59d58d78553e
+    return this.value.split('').reduce((d, ch) => d * 3 + Number(ch) * 1, 0)
   }
 
   isValidTrinary(value) {

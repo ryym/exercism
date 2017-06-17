@@ -14,10 +14,9 @@ const makeRandomKey = (size = 10) => {
 
 const getAlphaIndex = ch => ch.charCodeAt(0) - CH_CODE_a
 
-const shiftChar = (ch, n) => {
+const shiftChar = (ch, offset) => {
   const pos = ch.charCodeAt(0) - CH_CODE_a
-  const offset = n < 0 ? N_ALPHAS + n : n
-  const shiftedPos = (pos + offset) % N_ALPHAS
+  const shiftedPos = (pos + offset + N_ALPHAS) % N_ALPHAS
   return String.fromCharCode(CH_CODE_a + shiftedPos)
 }
 

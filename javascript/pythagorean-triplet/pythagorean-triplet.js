@@ -1,36 +1,26 @@
-const isPythagorean = (a, b, c) => a * a + b * b === c * c
+const findPythagoreans = ({ maxFactor, minFactor = 1, sum }) => {
+  const max = Number(maxFactor) || 1
+  const min = Math.max(minFactor, 1)
+  const maxSq = max * max
+  const triplets = []
 
-const forEachTriplet = (min, max, operate) => {
-  const [bmin, cmin] = [min + 1, min + 2]
-  for (let c = cmin; c <= max; c++) {
-    for (let b = bmin; b <= c - 1; b++) {
-      for (let a = min; a <= b - 1; a++) {
-        if (operate(a, b, c) === 'break') {
-          break
-        }
+  for (let a = min; a < max - 1; a++) {
+    for (let b = a + 1; b < max; b++) {
+      const abSq = a * a + b * b
+      if (abSq > maxSq) {
+        break
+      }
+      let c = Math.sqrt(abSq)
+      if (c === Math.floor(c)) {
+        triplets.push(new Triplet(a, b, c))
       }
     }
   }
-}
 
-const findPythagoreans = ({ maxFactor, minFactor = 1, sum = NaN }) => {
-  const max = Number(maxFactor) || 1
-  const min = Math.max(minFactor, 1)
   sum = Number(sum)
-
-  const triplets = []
-  const hasSum = !isNaN(sum)
-
-  forEachTriplet(min, max, (a, b, c) => {
-    const abcSum = a + b + c
-    if (abcSum > sum) {
-      return 'break'
-    }
-    if ((!hasSum || abcSum === sum) && isPythagorean(a, b, c)) {
-      triplets.push(new Triplet(a, b, c))
-    }
-  })
-
+  if (!isNaN(sum)) {
+    return triplets.filter(t => t.sum() === sum)
+  }
   return triplets
 }
 
@@ -51,7 +41,8 @@ class Triplet {
   }
 
   isPythagorean() {
-    return isPythagorean(this.a, this.b, this.c)
+    const { a, b, c } = this
+    return a * a + b * b === c * c
   }
 
   toString() {

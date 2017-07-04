@@ -5,23 +5,7 @@ const COMMANDS = [
   "jump",
 ]
 
-const parseToFlags = (n, len = 5) => {
-  const flags = []
-  let i = 0
-
-  while (n > 0) {
-    if (n & 1) {
-      flags.push(i)
-    }
-    n = n >> 1
-    i += 1
-  }
-
-  if (i === len) {
-    flags.pop()
-  }
-  return { flags, reverse: i === len }
-}
+const isFlagOn = (n, i) => n >> i & 1
 
 module.exports = class SecretHandshake {
   constructor(input) {
@@ -36,8 +20,12 @@ module.exports = class SecretHandshake {
   }
 
   commands() {
-    const { flags, reverse } = parseToFlags(this.n)
-    const commands = flags.map(i => COMMANDS[i])
+    const commands = COMMANDS.reduce((cs, command, i) => {
+      isFlagOn(this.n, i) && cs.push(command)
+      return cs
+    }, [])
+
+    const reverse = isFlagOn(this.n, COMMANDS.length)
     return reverse ? commands.reverse() : commands
   }
 }

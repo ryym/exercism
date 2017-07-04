@@ -5,24 +5,22 @@ const COMMANDS = [
   "jump",
 ]
 
-const parseToFlags = (n, maxIdx = 4) => {
-  let rem = n
-  let i = 0
+const parseToFlags = (n, len = 5) => {
   const flags = []
+  let i = 0
 
-  while (rem > 1) {
-    if (rem % 2 === 1) {
+  while (n > 0) {
+    if (n & 1) {
       flags.push(i)
     }
-    rem = Math.floor(rem / 2)
+    n = n >> 1
     i += 1
   }
 
-  if (i < maxIdx && rem === 1) {
-    flags.push(i)
+  if (i === len) {
+    flags.pop()
   }
-  const reverse = i === maxIdx && rem === 1
-  return { flags, reverse }
+  return { flags, reverse: i === len }
 }
 
 module.exports = class SecretHandshake {

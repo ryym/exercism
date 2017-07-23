@@ -1,5 +1,5 @@
-const insert = (prev, node, next) => {
-  prev.connect(node)
+const insertAfter = (node, next) => {
+  next.connect(node.next)
   node.connect(next)
 }
 
@@ -51,7 +51,7 @@ module.exports = class LinkedList {
   }
 
   push(elm) {
-    insert(this.last, new Node(elm), this.end)
+    insertAfter(this.last, new Node(elm))
   }
 
   pop() {
@@ -59,7 +59,7 @@ module.exports = class LinkedList {
   }
 
   unshift(elm) {
-    insert(this.start, new Node(elm), this.head)
+    insertAfter(this.start, new Node(elm))
   }
 
   shift() {

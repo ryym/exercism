@@ -5,6 +5,7 @@ const insert = (prev, node, next) => {
 
 const drop = (node) => {
   node.prev.connect(node.next)
+  return node
 }
 
 const count = (node, sum = 0) => !node ? sum : count(node.next, sum + 1)
@@ -54,12 +55,7 @@ module.exports = class LinkedList {
   }
 
   pop() {
-    if (this.isEmpty()) {
-      return null
-    }
-    const { last } = this
-    drop(last)
-    return last.value
+    return this.dropNode(this.last)
   }
 
   unshift(elm) {
@@ -67,20 +63,19 @@ module.exports = class LinkedList {
   }
 
   shift() {
-    if (this.isEmpty()) {
-      return null
-    }
-    const { head } = this
-    drop(head)
-    return head.value
+    return this.dropNode(this.head)
   }
 
   delete(elm) {
     const node = findFromLast(this.last, elm)
-    if (node) {
-      drop(node)
-      return node.value
+    return node ? this.dropNode(node) : null
+  }
+
+  dropNode(node) {
+    if (this.isEmpty()) {
+      return null
     }
-    return null
+    const dropped = drop(node)
+    return dropped.value
   }
 }

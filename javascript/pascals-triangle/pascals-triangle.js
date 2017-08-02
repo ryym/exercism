@@ -10,13 +10,13 @@ const makeNextRow = (prev) => {
   return next
 }
 
-const pascalsTriangle = (nRows, rows = []) => {
-  if (nRows <= 0) {
-    return rows
+const pascalsTriangle = (nRows) => {
+  rows = []
+  for (let i = 0; i < nRows; i++) {
+    const prev = rows[rows.length - 1]
+    rows.push(prev ? makeNextRow(prev) : [1])
   }
-  const prev = rows[rows.length - 1]
-  const next = prev ? makeNextRow(prev) : [1]
-  return pascalsTriangle(nRows - 1, [...rows, next])
+  return rows
 }
 
 module.exports = class Triangle {

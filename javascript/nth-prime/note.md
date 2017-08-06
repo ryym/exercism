@@ -16,3 +16,16 @@ perfect-number の問題でもちょっとあったけど、
 18 x 2
 36 x 1
 ```
+
+---
+
+他の人の解答を見ると、n番目の素数が知りたい時、その素数は必ず以下の数より小さいらしい。
+
+```
+n log(n) + n log(log(n))
+```
+
+上限さえ決まれば、確かにエラトステネスの篩を使う方が早そう。
+
+- <https://www.quora.com/What-are-good-ways-to-find-the-nth-prime-number-in-the-fastest-way-This-question-is-asked-in-the-context-of-an-interview-What-if-it-is-not-allowed-to-compute-all-n-prime-numbers>
+- <http://exercism.io/submissions/aa19db02c35e4de6b622472ef9007d82>

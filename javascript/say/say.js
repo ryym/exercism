@@ -1,56 +1,59 @@
+// Inspired by http://exercism.io/submissions/c7669f5867cf496e87587d19dff85e17
+
 const UNDER20 = Object.freeze([
-  '',
-  'one', 'two', 'three', 'four', 'five',
-  'six', 'seven', 'eight', 'nine', 'ten',
-  'eleven', 'twelve', 'thirteen',
-  'fourteen', 'fifteen', 'sixteen',
-  'seventeen', 'eighteen', 'nineteen',
+  'zero', 'one', 'two', 'three', 'four', 'five',
+  'six', 'seven', 'eight', 'nine', 'ten', 'eleven',
+  'twelve', 'thirteen', 'fourteen', 'fifteen',
+  'sixteen', 'seventeen', 'eighteen', 'nineteen',
 ])
 
 const TENS = Object.freeze([
-  '', '',
-  'twenty', 'thirty', 'forty', 'fifty',
-  'sixty', 'seventy', 'eighty', 'ninety',
+  null, null, 'twenty', 'thirty', 'forty',
+  'fifty', 'sixty', 'seventy', 'eighty', 'ninety',
 ])
+
+const SCALES = Object.freeze({
+  100: 'hundred',
+  1000: 'thousand',
+  1000000: 'million',
+  1000000000: 'billion',
+})
 
 const inEnglish = (n) => {
   if (isNaN(n) || n < 0 || 999999999999 < n) {
     throw new Error('Number must be between 0 and 999,999,999,999.')
   }
-  if (n === 0) {
-    return 'zero'
-  }
-  const chunks = splitToChunks(n, 3)
-  return sayChunks(chunks, ['thousand', 'million', 'billion'])
+  return say(n).join(' ')
 }
 
-const splitToChunks = (n, unit) => {
-  const s = String(n)
-  const chunks = []
-  const mod = s.length % unit
-  if (mod > 0) {
-    chunks.push(s.slice(0, mod))
+const say = (n) => {
+  if (n < 100) {
+    return [sayTens(n)]
   }
-  for (let i = mod; i < s.length; i += unit) {
-    chunks.push(Number(s.slice(i, i + unit)))
-  }
-  return chunks
+  const scale = n < 1000 ? 100 : scaleExceptTop(3, n)
+  return sayWithScale(n, scale)
 }
 
-const sayChunks = (chunks, scales) => {
-  const lastScaleIdx = chunks.length - 2
-  return chunks.reduce((ps, n, i) => {
-    if (n > 0) {
-      const p = sayChunk(n, scales[lastScaleIdx - i])
-      ps.push(p)
-    }
-    return ps
-  }, []).join(' ')
+const scaleExceptTop = (i, n) => {
+  const nScale = scaleOf(n)
+  return Math.pow(10, nScale - (nScale % i || i))
 }
 
-const sayChunk = (n, scale) => {
-  const p = n < 100 ? sayTens(n) : sayHundreds(n)
-  return scale ? `${p} ${scale}` : p
+const scaleOf = (n) => {
+  let s = 0
+  while (n > 0) {
+    s += 1
+    n = Math.floor(n / 10)
+  }
+  return s
+}
+
+const sayWithScale = (n, scale) => {
+  const leftmost = Math.floor(n / scale)
+  const scaleName = SCALES[scale]
+  const rest = n % scale
+  const restWords = rest > 0 ? say(rest) : []
+  return say(leftmost).concat(scaleName).concat(restWords)
 }
 
 const sayTens = (n) => {
@@ -58,17 +61,8 @@ const sayTens = (n) => {
     return UNDER20[n]
   }
   const one = n % 10
-  const ten = (n - one) / 10
-  const saidOne = one > 0 ? `-${UNDER20[one]}` : ''
-  return `${TENS[ten]}${saidOne}`
+  const tenName = TENS[(n - one) / 10]
+  return one === 0 ? tenName : `${tenName}-${UNDER20[one]}`
 }
 
-const sayHundreds = (n) => {
-  const ten = n % 100
-  const hun = (n - ten) / 100
-  return sayChunks([hun, ten], ['hundred'])
-}
-
-module.exports = {
-  inEnglish,
-}
+module.exports = { inEnglish }

@@ -1,5 +1,3 @@
-// Inspired by http://exercism.io/submissions/c7669f5867cf496e87587d19dff85e17
-
 const UNDER20 = Object.freeze([
   'zero', 'one', 'two', 'three', 'four', 'five',
   'six', 'seven', 'eight', 'nine', 'ten', 'eleven',
@@ -12,48 +10,31 @@ const TENS = Object.freeze([
   'fifty', 'sixty', 'seventy', 'eighty', 'ninety',
 ])
 
-const SCALES = Object.freeze({
-  100: 'hundred',
-  1000: 'thousand',
-  1000000: 'million',
-  1000000000: 'billion',
-})
+const SCALES = Object.freeze(['hundred', 'thousand', 'million', 'billion'])
 
 const inEnglish = (n) => {
   if (isNaN(n) || n < 0 || 999999999999 < n) {
     throw new Error('Number must be between 0 and 999,999,999,999.')
   }
-  return say(n).join(' ')
+  return say(n).reverse().join(' ')
 }
 
-const say = (n) => {
+const say = (n, iScale = n < 1000 ? 0 : 1) => {
   if (n < 100) {
     return [sayTens(n)]
   }
-  const scale = n < 1000 ? 100 : scaleExceptTop(3, n)
-  return sayWithScale(n, scale)
-}
 
-const scaleExceptTop = (i, n) => {
-  const nScale = scaleOf(n)
-  return Math.pow(10, nScale - (nScale % i || i))
-}
-
-const scaleOf = (n) => {
-  let s = 0
-  while (n > 0) {
-    s += 1
-    n = Math.floor(n / 10)
+  const unit = n < 1000 ? 100 : 1000
+  const m = n % unit
+  let next = (n - m) / unit
+  while (next % unit === 0) {
+    next = next / unit
+    iScale += 1
   }
-  return s
-}
 
-const sayWithScale = (n, scale) => {
-  const leftmost = Math.floor(n / scale)
-  const scaleName = SCALES[scale]
-  const rest = n % scale
-  const restWords = rest > 0 ? say(rest) : []
-  return say(leftmost).concat(scaleName).concat(restWords)
+  const scale = SCALES[iScale % SCALES.length]
+  const rest = [scale, ...say(next, iScale + 1)]
+  return m === 0 ? rest : say(m).concat(rest)
 }
 
 const sayTens = (n) => {

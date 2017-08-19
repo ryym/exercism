@@ -127,6 +127,12 @@ describe('Bowling', function() {
         new Error('Should not be able to roll after game is over'));
     });
 
+    it('a game with more than ten frames and last frame is a strike', function() {
+      var rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 3, 4, 5];
+      expect(function() { new Bowling(rolls).score(); }).toThrow(
+        new Error('Should not be able to roll after game is over'));
+    });
+
     it('bonus rolls for a strike in the last frame must be rolled before score can be calculated', function() {
       var rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10];
       expect(function() { new Bowling(rolls).score(); }).toThrow(

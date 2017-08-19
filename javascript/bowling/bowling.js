@@ -1,6 +1,9 @@
-// Refactored and some responsibilities are separated.
-// However the readability is still not so good
-// (Especially of `assertRollSets`).
+// Introduced a concept of frames and fill frames.
+// Though the code is longer than the previous iterations,
+// this implementation is most readable and natural I think.
+
+const N_PINS = 10
+const N_FRAMES = 10
 
 const Err = {
   TOO_FEW_ROLLS: 'Score cannot be taken until the end of the game',
@@ -8,103 +11,109 @@ const Err = {
   TOO_MANY_PINS: 'Pin count exceeds pins on the lane'
 }
 
-const RollType = {
+const FrameType = {
   NORMAL: 'normal',
   STRIKE: 'strike',
   SPARE: 'spare',
 }
 
-const getRollType = (rolls, nPins) => {
-  if (nPins < 10) {
-    return RollType.NORMAL
-  }
-  return rolls.length === 1 ? RollType.STRIKE : RollType.SPARE
-}
+const sum = (xs, valueOf = (x) => x) => xs.reduce((t, x, i) => t + valueOf(x, i), 0)
 
-class RollSet {
+class Frame {
   constructor(idx, rolls) {
-    this.idx = idx + rolls.length - 1
     this.rolls = rolls
-    this.total = rolls.reduce((a, b) => a + b)
-    this.type = getRollType(rolls, this.total)
+    this.nRolls = rolls.length
+    this.nTotalRolls = idx + rolls.length - 1
+    this.nHitPins = sum(rolls)
+    this.type = this.nHitPins < N_PINS
+      ? FrameType.NORMAL
+      : rolls.length === 1 ? FrameType.STRIKE : FrameType.SPARE
   }
 }
 
 class Bowling {
   constructor(rolls) {
-    if (rolls.some(p => p < 0 || 10 < p)) {
-      throw new Error('Pins must have a value from 0 to 10')
+    if (rolls.some(p => p < 0 || N_PINS < p)) {
+      throw new Error(`Pins must have a value from 0 to ${N_PINS}`)
     }
     this.rolls = rolls
   }
 
   score() {
-    const rollSets = makeRollSets(this.rolls)
-    assertRollSets(rollSets, this.rolls.length)
-    return score(rollSets, this.rolls)
-  }
-}
-
-const makeRollSets = (rolls) => {
-  const rollSets = []
-  let set
-  for (let i = 0; i < rolls.length;) {
-    const nRolls = rolls[i] === 10 || i === rolls.length - 1 ? 1 : 2
-    const set = rolls.slice(i, i + nRolls)
-    rollSets.push(new RollSet(i, set))
-    i += set.length
-  }
-  return rollSets
-}
-
-const assertRollSets = (rollSets, nRolls) => {
-  if (rollSets.some(s => s.total > 10)) {
-    throw new Error(Err.TOO_MANY_PINS)
-  }
-
-  if (rollSets.length < 10) {
-    throw new Error(Err.TOO_FEW_ROLLS)
-  }
-
-  if (rollSets.length > 12) {
-    throw new Error(Err.TOO_MANY_ROLLS)
-  }
-
-  // Assert the 10th frame.
-  const [s1, s2, s3] = rollSets.slice(9)
-
-  // If the 10th roll set is a spare or strike, fill balls exist.
-  if (s1.type !== RollType.NORMAL && !s2) {
-    throw new Error(Err.TOO_FEW_ROLLS)
-  }
-
-  // If the 10th roll set is a strike, next 2 rolls exist.
-  if (s1.type === RollType.STRIKE && s1.idx >= nRolls - 2) {
-    throw new Error(Err.TOO_FEW_ROLLS)
-  }
-
-  // Fill balls do not exist if the 10th frame is not a spare nor strike.
-  const prevLast = rollSets[rollSets.length - 2]
-  if (rollSets.length > 10 && prevLast.type === RollType.NORMAL) {
-    throw new Error(Err.TOO_MANY_ROLLS)
-  }
-}
-
-const score = (rollSets, rolls) => {
-  let total = 0
-  for (let i = 0; i < 9; i++) {
-    const s = rollSets[i]
-    const [n1, n2] = rolls.slice(s.idx + 1 , s.idx + 3)
-    switch (s.type) {
-      case RollType.STRIKE:
-        total += n2
-      case RollType.SPARE:
-        total += n1
-      case RollType.NORMAL:
-        total += s.total
+    const [frames, fillFrames] = makeFrames(this.rolls)
+    const err = validateFrames(frames, fillFrames)
+    if (err) {
+      throw new Error(err)
     }
+    return score(this.rolls, frames, fillFrames)
   }
-  return rollSets.slice(9).reduce((t, s) => t + s.total, total)
+}
+
+const makeFrames = (rolls) => {
+  const frames = []
+  for (let i = 0; i < rolls.length;) {
+    const nRolls = rolls[i] === N_PINS ? 1 : 2
+    const frame = new Frame(i, rolls.slice(i, i + nRolls))
+    frames.push(frame)
+    i += nRolls
+  }
+
+  const fillFrames = frames.slice(N_FRAMES)
+  return [frames.slice(0, N_FRAMES), fillFrames]
+}
+
+const validateFrames = (frames, fillFrames) => {
+  if (frames.concat(fillFrames).some(f => f.nHitPins > N_PINS)) {
+    return Err.TOO_MANY_PINS
+  }
+
+  if (frames.length < N_FRAMES) {
+    return Err.TOO_FEW_ROLLS
+  }
+
+  const nBonusRolls = sum(fillFrames, f => f.nRolls)
+  if (nBonusRolls > 2) {
+    return Err.TOO_MANY_ROLLS
+  }
+
+  const lastFrame = frames[N_FRAMES - 1]
+  switch (lastFrame.type) {
+    case FrameType.NORMAL:
+      if (nBonusRolls > 0) {
+        return Err.TOO_MANY_ROLLS
+      }
+      break
+    case FrameType.SPARE:
+      if (nBonusRolls < 1) {
+        return Err.TOO_FEW_ROLLS
+      }
+      break
+    case FrameType.STRIKE:
+      if (nBonusRolls < 2) {
+        return Err.TOO_FEW_ROLLS
+      }
+  }
+
+  return null
+}
+
+const score = (rolls, frames, fillFrames) => {
+  const total = sum(frames, (f, i) => {
+    const nBonus = i + 1 === N_FRAMES ? 0 : getBonusCount(f.type)
+    const nextIdx = f.nTotalRolls + 1
+    const bonusRolls = rolls.slice(nextIdx, nextIdx + nBonus)
+    return f.nHitPins + sum(bonusRolls)
+  })
+  return total + sum(fillFrames, f => f.nHitPins)
+}
+
+const getBonusCount = (type) => {
+  switch (type) {
+    case FrameType.STRIKE: return 2
+    case FrameType.SPARE: return 1
+    case FrameType.NORMAL:
+    default: return 0
+  }
 }
 
 module.exports = Bowling

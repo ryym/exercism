@@ -63,74 +63,26 @@ const make = (tree, vs = []) => {
   return vss
 }
 
-const a = [[0], [1], [2]]
-const b = [[0, a], [1, a], [2, a]]
-const c = [[0, b], [1, b], [2, b]]
-console.log(
-  make(c).map(vs => vs.reverse())
-)
-
-const makeTree = n => {
-  // a = [[0], [1], [2]]
-  // b = [[0, [1, 2]], [1, [0, 2]], [2, [0, 1]]]
-  t = [
-    [0, [1, [2]]],
-    [0, [2, [1]]],
-    [1, [0, [2]]],
-    [1, [2, [0]]],
-    [2, [0, [1]]],
-    [2, [1, [0]]],
-  ]
-
-  // 0,1,2,3 (4つ) から3つを選ぶ全パターン
-  [
-    [0, 1, 2],
-    [0, 1, 3],
-    [0, 2, 1],
-    [0, 2, 3],
-    [0, 3, 1],
-    [0, 3, 2],
-    [1, 0, 2],
-    [1, 0, 3],
-    [1, 2, 0],
-    [1, 2, 3],
-    [1, 3, 0],
-    [1, 3, 2],
-    [2, 0, 1],
-    [2, 0, 3],
-    [2, 1, 0],
-    [2, 1, 3],
-    [2, 3, 0],
-    [2, 3, 1],
-    [3, 0, 1],
-    [3, 0, 2],
-    [3, 1, 0],
-    [3, 1, 2],
-    [3, 2, 0],
-    [3, 2, 1],
-  ]
-}
+// const a = [[0], [1], [2]]
+// const b = [[0, a], [1, a], [2, a]]
+// const c = [[0, b], [1, b], [2, b]]
+// console.log(
+//   make(c).map(vs => vs.reverse())
+// )
 
 const patterns = ({
   len,
   ns,
-  c,
-  used,
-  // bef,
-  // pats,
+  c = 0,
+  used = ns.map(() => 0),
 }) => {
   const pats = []
 
-  if (c === len - 1) {
-    for (let i = 0; i < len; i++) {
-      if (used[i] === 0) {
-        pats.push([i])
-      }
-    }
-    return pats
+  if (c === len) {
+    return [[]]
   }
 
-  for (let i = 0; i < len; i++) {
+  for (let i = 0; i < ns.length; i++) {
     if (used[i] === 0) {
       const used2 = used.slice()
       used2[i] = 1
@@ -144,16 +96,18 @@ const patterns = ({
       })
     }
   }
+
+  return pats
 }
 
-patterns({
-  len: 3,
+// TODO: 一応これで順列作れた。
+// 後はこれで作ったパターンを計算式にあてはめてみる
+const ret = patterns({
+  len: 2,
   ns: [0, 1, 2, 3],
-  c: 0,
-  bef: [],
-  // pats: [], // answer
-  used: [0, 0, 0, 0],
 })
+
+console.log(ret.map(a => a.reverse()))
 
 // const find = (left, right, cands) => {
 // }

@@ -75,7 +75,7 @@ describe("Solve the alphametics puzzle", function() {
     expect(solve(puzzle)).toEqual(expected);
   });
 
-  xit("puzzle with ten letters", function() {
+  it("puzzle with ten letters", function() {
     var puzzle = "AND + A + STRONG + OFFENSE + AS + A + GOOD == DEFENSE";
     var expected =   {
       "A": 5,

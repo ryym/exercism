@@ -23,46 +23,6 @@
 // これと実際に代入したい数値の配列を組み合わせれば合計値が一致するか確かめられる
 // [9, 4, 5, 2, 6] -> A:9 B:4 C:5 D:2 E:6
 
-const toN = (ps, ns) => ps.reduce((t, p) => t * 10 + ns[p], 0)
-
-const apply = (left, right, ns) => {
-  const sum = left.reduce((t, ps) => t + toN(ps, ns), 0)
-  const result = toN(right, ns)
-  return [sum, result]
-}
-
-// 可能なパターンを列挙したい。
-//
-// 要は、0-9の数のうち n 個を選んで作れる順列の
-// パターン一覧を出力できればいい。
-// 
-// あるいは長さが不定な2次元配列を動的にネストループしたい。
-// 順列を展開した木構造のようなのが作れればできそう。
-// ただこれだと同じ数値の重複を許しているし無駄がある?
-// n個を選んで作れる順列をちゃんと書けるならそっちの方が良いかも。
-
-const make = (tree, vs = []) => {
-  const vss = []
-  for (let [v, t] of tree) {
-    if (t === undefined) {
-      vss.push(vs.concat(v))
-    }
-    else {
-      make(t, vs).forEach(vs => {
-        vss.push(vs.concat(v))
-      })
-    }
-  }
-  return vss
-}
-
-// const a = [[0], [1], [2]]
-// const b = [[0, a], [1, a], [2, a]]
-// const c = [[0, b], [1, b], [2, b]]
-// console.log(
-//   make(c).map(vs => vs.reverse())
-// )
-
 const patterns = ({
   len,
   ns,
@@ -109,26 +69,44 @@ const ret = patterns({
 // right: [[2, 4]]
 const parse = (exp) => {
   const chunks = exp.split(/\s\+\s|\s==\s/)
+
+  const vars = []
   const nss = []
-  let idx = 0
+  const leftmosts = new Set()
+
   for (let chunk of chunks) {
     const ns = []
-    for (let c of chunk.split('')) {
-      if (vars.indexOf(c) < 0) {
+    const cs = chunk.split('')
+    for (let c of cs) {
+      let idx = vars.indexOf(c)
+      if (idx < 0) {
+        idx = vars.length
         vars.push(c)
       }
-      ns.push(idx++)
+      ns.push(idx)
+    }
+    if (cs.length > 1) {
+      leftmosts.add(vars.indexOf(cs[0]))
     }
     nss.push(ns)
   }
 
+  const isCandidate = (ns) => {
+    for (let p of leftmosts) {
+      if (ns[p] === 0) {
+        return false
+      }
+    }
+    return true
+  }
+
   const left = nss.slice(0, nss.length - 1)
   const right = nss[nss.length - 1]
-  return { vars, left, right }
+  return { vars, left, right, isCandidate }
 }
 
 const listPatterns = (len) => {
-  // TODO
+  return patterns({ len, ns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] }).map(p => p.reverse())
 }
 
 const isValidExpression = (left, right, ns) => {
@@ -139,13 +117,14 @@ const isValidExpression = (left, right, ns) => {
 const evaluate = (ps, ns) => {
   return ps.reduce((t, p) => t * 10 + ns[p], 0)
 }
+const hasLeadingZero = (ns) => ns.length > 1 && ns[0] === 0
 
-const findValidPattern = (left, right, ps) => {
-  return ps.find(p => isValidExpression(left, right, p))
+const findValidPattern = (left, right, isCandidate, ps) => {
+  return ps.find(p => isCandidate(p) && isValidExpression(left, right, p))
 }
 
 const makeAnswer = (vars, ns) => {
-  if (pattern == null) {
+  if (ns == null) {
     return null
   }
   return vars.reduce((ans, v, i) => {
@@ -155,8 +134,17 @@ const makeAnswer = (vars, ns) => {
 }
 
 const solve = (input) => {
-  const { vars, left, right } = parse(input)
+  const { vars, left, right, isCandidate } = parse(input)
   const patterns = listPatterns(vars.length)
-  const pattern = findValidPattern(left, right, patterns)
+  const pattern = findValidPattern(left, right, isCandidate, patterns)
   return makeAnswer(vars, pattern)
 }
+
+module.exports = solve
+
+console.log(0)
+console.log(listPatterns(7).length)
+
+// XXX: 一応動くけどめっちゃ遅い。。10文字のクイズを解くのに30秒かかる。
+// listPatterns にがっつり時間かかる
+// アルゴリズムを改善すべきか、そもそも全パターンのチェックをしない方法を探すか。。

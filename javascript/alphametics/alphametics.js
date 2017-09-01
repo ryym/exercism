@@ -23,13 +23,6 @@
 // これと実際に代入したい数値の配列を組み合わせれば合計値が一致するか確かめられる
 // [9, 4, 5, 2, 6] -> A:9 B:4 C:5 D:2 E:6
 
-// const makeAnswer = (vars, ns) => {
-//   return vars.reduce((a, v, i) => {
-//     a[v] = ns[i]
-//     return a
-//   }, {})
-// }
-
 const toN = (ps, ns) => ps.reduce((t, p) => t * 10 + ns[p], 0)
 
 const apply = (left, right, ns) => {
@@ -106,16 +99,64 @@ const ret = patterns({
   len: 2,
   ns: [0, 1, 2, 3],
 })
+// console.log(ret.map(a => a.reverse()))
 
-console.log(ret.map(a => a.reverse()))
+/* ------------- */
 
-// const find = (left, right, cands) => {
-// }
+// 'AB + CD == CE'
+// vars: [A, B, C, D, E]
+// left: [[0, 1], [2, 3]]
+// right: [[2, 4]]
+const parse = (exp) => {
+  const chunks = exp.split(/\s\+\s|\s==\s/)
+  const nss = []
+  let idx = 0
+  for (let chunk of chunks) {
+    const ns = []
+    for (let c of chunk.split('')) {
+      if (vars.indexOf(c) < 0) {
+        vars.push(c)
+      }
+      ns.push(idx++)
+    }
+    nss.push(ns)
+  }
 
+  const left = nss.slice(0, nss.length - 1)
+  const right = nss[nss.length - 1]
+  return { vars, left, right }
+}
+
+const listPatterns = (len) => {
+  // TODO
+}
+
+const isValidExpression = (left, right, ns) => {
+  const lsum = left.reduce((t, e) => t + evaluate(e, ns), 0)
+  const rsum = evaluate(right, ns)
+  return lsum === rsum
+}
+const evaluate = (ps, ns) => {
+  return ps.reduce((t, p) => t * 10 + ns[p], 0)
+}
+
+const findValidPattern = (left, right, ps) => {
+  return ps.find(p => isValidExpression(left, right, p))
+}
+
+const makeAnswer = (vars, ns) => {
+  if (pattern == null) {
+    return null
+  }
+  return vars.reduce((ans, v, i) => {
+    ans[v] = ns[i]
+    return ans
+  }, {})
+}
 
 const solve = (input) => {
-  // const vars = parse(input)
-  // const cands = listCandidates(vars, input)
-  // const ns = convertToNumbers(cands)
-  // return makeAnswer(vars, ns)
+  const { vars, left, right } = parse(input)
+  const patterns = listPatterns(vars.length)
+  const pattern = findValidPattern(left, right, patterns)
+  return makeAnswer(vars, pattern)
 }

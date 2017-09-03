@@ -1,4 +1,3 @@
-// XXX: Take a few seconds to solve 8 or more letters problem.
 const solve = (input) => {
   const data = parse(input)
   const pattern = findValidPattern(data)
@@ -34,35 +33,30 @@ const parse = (exp) => {
     nss.push(ns)
   }
 
-  const isCandidate = (ns) => {
-    for (let p of leftmosts) {
-      if (ns[p] === 0) {
-        return false
-      }
-    }
-    return true
-  }
-
   const left = nss.slice(0, nss.length - 1)
   const right = nss[nss.length - 1]
-  return { vars, left, right, isCandidate }
+  return { vars, left, right, leftmosts }
 }
 
 const findValidPattern = (data) => {
-  let pattern = null
-  const n = data.vars.length
-  const ns = Array(n)
-  const used = Array(10)
+  const { vars, left, right } = data
 
+  const len = vars.length
+  const ns = Array(len)
+  const used = Array(10)
+  const { starts, ends, maxPs } = makeOptimizedRanges(data)
+
+  let pattern = null
   const perm = (p) => {
-    if (p === n) {
-      if (data.isCandidate(ns) && isValidExpression(data, ns)) {
+    if (p === len) {
+      if (isValidExpression(left, right, ns)) {
         pattern = ns
       }
       return
     }
 
-    for (ns[p] = 0; ns[p] < 10; ns[p]++) {
+    const end = maxPs[p] == null ? ends[p] : Math.min(ns[maxPs[p]], ends[p])
+    for (ns[p] = starts[p]; ns[p] < end; ns[p]++) {
       if (!used[ns[p]]) {
         used[ns[p]] = true
         perm(p + 1)
@@ -74,11 +68,37 @@ const findValidPattern = (data) => {
     }
   }
 
-  perm(0, data.vars.length)
+  perm(0)
   return pattern
 }
 
-const isValidExpression = ({ left, right }, ns) => {
+// This aims to avoid checking unnecessary permutations.
+// For example, if the expression has 'ABC',
+// we only need to loop from 1 to 9 for 'A' (not from 0).
+const makeOptimizedRanges = ({ vars, left, right, leftmosts }) => {
+  const starts = vars.map((_, i) => leftmosts.has(i) ? 1 : 0)
+  const ends = Array(vars.length).fill(10)
+
+  // Example:
+  // If the expression is 'AB + CDE == FAE',
+  // 'C' must be less than or equal to 'F'.
+  // In this case, maxPs is '[, ,5, , ,]' (5 is an index of 'F').
+  const maxPs = Array(vars.length)
+
+  const sameScales = left.filter(ns => ns.length >= right.length)
+  if (sameScales.length === 0) {
+    ends[right[0]] = left.length
+  } else {
+    starts[right[0]] = sameScales.length
+    sameScales.forEach(ns => {
+      maxPs[ns[0]] = right[0]
+    })
+  }
+
+  return { starts, ends, maxPs }
+}
+
+const isValidExpression = (left, right, ns) => {
   const lsum = left.reduce((t, e) => t + evaluate(e, ns), 0)
   const rsum = evaluate(right, ns)
   return lsum === rsum

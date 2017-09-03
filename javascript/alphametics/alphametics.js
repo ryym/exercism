@@ -84,6 +84,5 @@ const isValidExpression = ({ left, right }, ns) => {
   return lsum === rsum
 }
 const evaluate = (ps, ns) => ps.reduce((t, p) => t * 10 + ns[p], 0)
-const hasLeadingZero = (ns) => ns.length > 1 && ns[0] === 0
 
 module.exports = solve

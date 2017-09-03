@@ -1,34 +1,14 @@
-// XXX: Too slow.
-
-const patterns = ({
-  len,
-  ns,
-  c = 0,
-  used = ns.map(() => 0),
-}) => {
-  const pats = []
-
-  if (c === len) {
-    return [[]]
-  }
-
-  for (let i = 0; i < ns.length; i++) {
-    if (used[i] === 0) {
-      const used2 = used.slice()
-      used2[i] = 1
-      const subpats = patterns({
-        len, ns,
-        used:used2,
-        c: c + 1,
-      })
-      subpats.forEach(sp => {
-        pats.push(sp.concat(i))
-      })
-    }
-  }
-
-  return pats
+// XXX: Take a few seconds to solve 8 or more letters problem.
+const solve = (input) => {
+  const data = parse(input)
+  const pattern = findValidPattern(data)
+  return pattern == null ? null : makeAnswer(data.vars, pattern)
 }
+
+const makeAnswer = (vars, ns) => vars.reduce((ans, v, i) => {
+  ans[v] = ns[i]
+  return ans
+}, {})
 
 const parse = (exp) => {
   const chunks = exp.split(/\s\+\s|\s==\s/)
@@ -68,39 +48,42 @@ const parse = (exp) => {
   return { vars, left, right, isCandidate }
 }
 
-const listPatterns = (len) => {
-  return patterns({ len, ns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] }).map(p => p.reverse())
+const findValidPattern = (data) => {
+  let pattern = null
+  const n = data.vars.length
+  const ns = Array(n)
+  const used = Array(10)
+
+  const perm = (p) => {
+    if (p === n) {
+      if (data.isCandidate(ns) && isValidExpression(data, ns)) {
+        pattern = ns
+      }
+      return
+    }
+
+    for (ns[p] = 0; ns[p] < 10; ns[p]++) {
+      if (!used[ns[p]]) {
+        used[ns[p]] = true
+        perm(p + 1)
+        if (pattern != null) {
+          break
+        }
+        used[ns[p]] = false
+      }
+    }
+  }
+
+  perm(0, data.vars.length)
+  return pattern
 }
 
-const isValidExpression = (left, right, ns) => {
+const isValidExpression = ({ left, right }, ns) => {
   const lsum = left.reduce((t, e) => t + evaluate(e, ns), 0)
   const rsum = evaluate(right, ns)
   return lsum === rsum
 }
-const evaluate = (ps, ns) => {
-  return ps.reduce((t, p) => t * 10 + ns[p], 0)
-}
+const evaluate = (ps, ns) => ps.reduce((t, p) => t * 10 + ns[p], 0)
 const hasLeadingZero = (ns) => ns.length > 1 && ns[0] === 0
-
-const findValidPattern = (left, right, isCandidate, ps) => {
-  return ps.find(p => isCandidate(p) && isValidExpression(left, right, p))
-}
-
-const makeAnswer = (vars, ns) => {
-  if (ns == null) {
-    return null
-  }
-  return vars.reduce((ans, v, i) => {
-    ans[v] = ns[i]
-    return ans
-  }, {})
-}
-
-const solve = (input) => {
-  const { vars, left, right, isCandidate } = parse(input)
-  const patterns = listPatterns(vars.length)
-  const pattern = findValidPattern(left, right, isCandidate, patterns)
-  return makeAnswer(vars, pattern)
-}
 
 module.exports = solve

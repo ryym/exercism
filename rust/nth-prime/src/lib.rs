@@ -1,24 +1,23 @@
-pub fn nth(at: i32) -> Result<i32, ()> {
-    if at <= 0 {
-        return Err(())
-    }
-    if at == 1 {
-        return Ok(2)
-    }
-
-    let mut i = 1;
-    let mut n = 1;
-    while i < at {
-        n += 2;
-        if is_prime(n) {
-            i += 1;
+pub fn nth(at: usize) -> Result<usize, &'static str> {
+    match at {
+        0 => Err("Invalid nth value"),
+        1 => Ok(2),
+        _ => {
+            let mut i = 1;
+            let mut n = 1;
+            while i < at {
+                n += 2;
+                if is_prime(n) {
+                    i += 1;
+                }
+            }
+            Ok(n)
         }
     }
-    Ok(n)
 }
 
-fn is_prime(n: i32) -> bool {
-    let end = (n as f64).sqrt() as i32;
+fn is_prime(n: usize) -> bool {
+    let end = (n as f64).sqrt() as usize;
 
     // (3..(end + 1)).step_by(2).all(|x| n % x != 0)
     let mut i = 3;

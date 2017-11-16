@@ -2,13 +2,10 @@ pub fn build_proverb(words: Vec<&str>) -> String {
     if words.len() == 0 {
         return String::new()
     }
-
-    let mut ss = (1..words.len())
-        .map(|i| build_sentence(words[i - 1], words[i]))
-        .collect::<Vec<String>>();
-
-    ss.push(last_sentence(words[0]));
-    ss.join("\n")
+    (1..words.len())
+        .map(|i| build_sentence(words[i - 1], words[i]) + "\n")
+        .collect::<String>()
+        + &last_sentence(words[0])
 }
 
 fn build_sentence(want: &str, lost: &str) -> String {

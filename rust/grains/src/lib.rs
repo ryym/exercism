@@ -1,7 +1,6 @@
 pub fn square(s: u32) -> u64 {
     assert!(1 <= s && s <= 64, "Square must be between 1 and 64");
-    // 2f64.powi((s - 1) as i32) as u64
-    (1..s).fold(1, |t, _| t*2)
+    2u64.pow(s - 1)
 }
 
 pub fn total() -> u64 {

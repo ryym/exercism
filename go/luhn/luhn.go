@@ -1,20 +1,20 @@
 package luhn
 
 import (
-	"regexp"
-	"strconv"
+	"unicode"
 )
 
-var ignores *regexp.Regexp = regexp.MustCompile(`\s+`)
-
 func Valid(input string) bool {
-	s := ignores.ReplaceAllString(input, "")
+	ns := make([]int, 0, len(input))
 
-	ns := make([]int, 0, len(s))
-	for _, c := range s {
-		if n, err := strconv.Atoi(string(c)); err == nil {
-			ns = append(ns, n)
-		} else {
+	for _, c := range input {
+		switch {
+		case unicode.IsSpace(c):
+			continue
+		case unicode.IsDigit(c):
+			// http://exercism.io/submissions/07d6e22408654bb8ac206e3749b9769a
+			ns = append(ns, int(c-'0'))
+		default:
 			return false
 		}
 	}

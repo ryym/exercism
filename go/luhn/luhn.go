@@ -23,24 +23,10 @@ func Valid(input string) bool {
 		return false
 	}
 
-	reverse(ns)
-	return checkSum(ns)%10 == 0
-}
-
-func reverse(ns []int) {
-	mid := len(ns) / 2
-	last := len(ns) - 1
-	for i := 0; i < mid; i++ {
-		if i != mid {
-			ns[last-i], ns[i] = ns[i], ns[last-i]
-		}
-	}
-}
-
-func checkSum(ns []int) int {
 	total := 0
+	last := len(ns) - 1
 	for i, n := range ns {
-		if i%2 == 0 {
+		if (last-i)%2 == 0 {
 			total += n
 		} else {
 			d := n * 2
@@ -51,5 +37,6 @@ func checkSum(ns []int) int {
 			}
 		}
 	}
-	return total
+
+	return total%10 == 0
 }

@@ -26,21 +26,15 @@ pub fn encode(s: &str) -> String {
 
 pub fn decode(s: &str) -> String {
     let mut out = String::new();
-    let mut ns = Vec::with_capacity(3);
+    let mut n = 0;
 
     for ch in s.chars() {
-        if ch.is_digit(10) {
-            ns.push(ch.to_string());
+        if let Some(d) = ch.to_digit(10) {
+            n = n * 10 + d;
         } else {
-            let n = if ns.is_empty() {
-                1
-            } else {
-                ns.join("").parse().unwrap()
-            };
-            for _ in 0..n {
-                out.push(ch);
-            }
-            ns = Vec::with_capacity(3);
+            out.push(ch);
+            (1..n).for_each(|_| out.push(ch));
+            n = 0;
         }
     }
 

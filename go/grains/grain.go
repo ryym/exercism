@@ -2,7 +2,6 @@ package grains
 
 import (
 	"errors"
-	"math"
 )
 
 const max = 64
@@ -11,7 +10,7 @@ func Square(n int) (uint64, error) {
 	if n <= 0 || max < n {
 		return 0, errors.New("invalid input")
 	}
-	return uint64(math.Pow(2, float64(n-1))), nil
+	return 1 << uint64(n-1), nil
 }
 
 func Total() uint64 {

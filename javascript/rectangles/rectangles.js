@@ -1,57 +1,57 @@
+// Count rectangles in an ASCII diagram.
+// Scan the diagram line by line from top to bottom, tracking horizontal sides
+// that share the same column positions (start, end). As long as vertical sides
+// ("|" or "+") continue at both endpoints, the sides stay in one group.
+// When the vertical continuity breaks, the group is closed and the number of
+// rectangles formed by N sides in the group is C(N,2).
 export function count(inputs) {
   const state = {
-    sides: {
-      // "3-5": {
-      //   entity: { start: 3, end: 5, key: "3-5" },
-      //   nSides: 3,
-      // },
-    },
-    rects: [
-      // { top: "3-5", nSides: 3 },
-    ],
+    // Horizontal side groups currently being tracked.
+    // Key: "start-end" column positions. Value: { side, count }.
+    activeSides: {},
+    // Groups whose vertical continuity has ended. Used to tally rectangles.
+    closedGroups: [],
   };
 
   for (let line of inputs) {
-    for (let side of getSides(state)) {
-      if (!isContinuousRect(line, side)) {
-        removeSide(state, side);
+    for (let side of getActiveSides(state)) {
+      if (!verticalSidesContinue(line, side)) {
+        closeSideGroup(state, side);
       }
     }
-    for (let side of findSides(line)) {
+    for (let side of findHorizontalSides(line)) {
       addSide(state, side);
     }
   }
-  for (let side of getSides(state)) {
-    removeSide(state, side);
+  // Close all remaining active groups after the last line.
+  for (let side of getActiveSides(state)) {
+    closeSideGroup(state, side);
   }
 
   let nRects = 0;
-  for (let rect of state.rects) {
-    nRects += countPossibleRects(rect.nSides);
+  for (let group of state.closedGroups) {
+    nRects += countCombinations(group.count);
   }
   return nRects;
 }
 
-const getSides = (state) => {
-  return Object.values(state.sides).map((e) => e.entity);
+const getActiveSides = (state) => {
+  return Object.values(state.activeSides).map((e) => e.side);
 };
 
-const removeSide = (state, side) => {
-  const sideState = state.sides[side.key];
-  delete state.sides[side.key];
-  if (sideState.nSides >= 2) {
-    state.rects.push({
-      top: side.key,
-      nSides: sideState.nSides,
-    });
+const closeSideGroup = (state, side) => {
+  const group = state.activeSides[side.key];
+  delete state.activeSides[side.key];
+  if (group.count >= 2) {
+    state.closedGroups.push({ count: group.count });
   }
 };
 
 const addSide = (state, side) => {
-  if (side.key in state.sides) {
-    state.sides[side.key].nSides += 1;
+  if (side.key in state.activeSides) {
+    state.activeSides[side.key].count += 1;
   } else {
-    state.sides[side.key] = { entity: side, nSides: 1 };
+    state.activeSides[side.key] = { side, count: 1 };
   }
 };
 
@@ -63,7 +63,7 @@ const newSide = (start, end) => {
   };
 };
 
-const findSides = (line) => {
+const findHorizontalSides = (line) => {
   let starts = [];
   const sides = [];
   for (let i = 0; i < line.length; i++) {
@@ -86,14 +86,14 @@ const findSides = (line) => {
   return sides;
 };
 
-const isContinuousRect = (line, side) => {
+const verticalSidesContinue = (line, side) => {
   const start = line[side.start];
   const end = line[side.end];
   return (start === "+" || start === "|") && (end === "+" || end === "|");
 };
 
-const countPossibleRects = (nSides) => {
-  // When the number of sides is N, the number of possible rectangles is equal to
-  // the number of combinations of choosing two from the N sides.
-  return (nSides * (nSides - 1)) / 2;
+// When N horizontal sides share the same column span with vertical continuity,
+// the number of rectangles equals choosing 2 from N: C(N,2).
+const countCombinations = (n) => {
+  return (n * (n - 1)) / 2;
 };
